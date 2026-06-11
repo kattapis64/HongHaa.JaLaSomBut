@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aun's Workspace | MWIT Schedule System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bg-color: #0b1120;
+        --text-main: #ffffff;
+        --text-sub: #9ca3af;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --sidebar-inner: #0b1120;
+        --sub-info-color: #93c5fd;
+        --room-info-color: #9ca3af;
+      }
+
+      body.light-mode {
+        --bg-color: #f8fafc;
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(15, 23, 42, 0.1);
+        --sidebar-inner: #ffffff;
+        --sub-info-color: #1d4ed8;
+        --room-info-color: #4b5563;
+      }
+
+      body {
+        background: var(--bg-color);
+        color: var(--text-main);
+        font-family: "Inter", "Sarabun", sans-serif;
+        transition:
+          background 0.3s ease,
+          color 0.3s ease;
+        /* ลบ display: flex; ออก */
+      }
+
+      .glass {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+      }
+
+      @keyframes rainbow-move {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .rainbow-border {
+        position: relative;
+        z-index: 0;
+        padding: 3px;
+        background: linear-gradient(
+          45deg,
+          #ff0000,
+          #ff7300,
+          #fffb00,
+          #48ff00,
+          #00ffd5,
+          #002bff,
+          #7a00ff,
+          #ff00c8,
+          #ff0000
+        );
+        background-size: 400%;
+        animation: rainbow-move 8s linear infinite;
+        border-radius: 1.5rem;
+      }
+
+      .rainbow-inner {
+        background: var(--sidebar-inner);
+        height: 100%;
+        width: 100%;
+        border-radius: calc(1.5rem - 3px);
+      }
+
+      /* Sidebar ปรับแต่งใหม่ */
+      /* แก้ไข Sidebar ให้ซ่อนเป็นค่าเริ่มต้น */
+      #left-sidebar {
+        width: 18rem;
+        flex-shrink: 0;
+        position: fixed; /* เปลี่ยนจาก sticky เป็น fixed */
+        top: 0;
+        left: 0;
+        height: 100vh;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-110%); /* ซ่อนไว้ทางซ้าย */
+        z-index: 40;
+      }
+
+      /* เมื่อมีคลาส .open ให้เลื่อนออกมา */
+      #left-sidebar.open {
+        transform: translateX(0);
+      }
+
+      /* ลบ Media Query อันเก่าที่เกี่ยวกับ #left-sidebar ออกให้หมด */
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+      }
+
+      th {
+        background: rgba(59, 130, 246, 0.1);
+        color: #60a5fa;
+        text-align: center;
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-bottom: 2px solid var(--glass-border);
+      }
+
+      td {
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+        text-align: center;
+        font-size: 1rem;
+      }
+
+      td:last-child {
+        border-right: none;
+      }
+
+      .day-column {
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.02);
+        color: #60a5fa;
+        width: 100px;
+      }
+
+      .class-card {
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: bold;
+        line-height: 1.4;
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .vertical-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: var(--text-sub);
+        line-height: 1;
+        opacity: 0.6;
+      }
+
+      .spacer-column {
+        width: 25px;
+        padding: 0 !important;
+      }
+
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.8rem;
+        font-weight: bold;
+        transition: all 0.2s;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+      }
+
+      .filter-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+      }
+
+      /* สีกลุ่มวิชา */
+      .comp {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border-left: 4px solid #3b82f6;
+      }
+      .math {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border-left: 4px solid #ef4444;
+      }
+      .science {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border-left: 4px solid #22c55e;
+      }
+      .english {
+        background: rgba(168, 85, 247, 0.15);
+        color: #c084fc;
+        border-left: 4px solid #a855f7;
+      }
+      .thai {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border-left: 4px solid #f59e0b;
+      }
+      .army {
+        background: rgba(2, 82, 33, 0.778);
+        color: #ffffff;
+        border-left: 4px solid #ffffff;
+      }
+      .activity {
+        background: rgb(255, 0, 234);
+        color: #ffffff;
+        border-left: 4px solid #ffffff;
+      }
+      .other {
+        background: rgba(107, 114, 128, 0.15);
+        color: #9ca3af;
+        border-left: 4px solid #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="overlay"
+      onclick="toggleSidebar()"
+      class="fixed inset-0 bg-black/40 z-30 hidden backdrop-blur-sm"
+    ></div>
+
+    <aside id="left-sidebar" class="p-5">
+      <div class="rainbow-border h-full shadow-2xl">
+        <div class="rainbow-inner p-8 flex flex-col h-full text-left">
+          <div
+            class="flex justify-between items-center mb-10 border-b border-white/5 pb-6"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs"
+              >
+                A
+              </div>
+              <h2
+                class="text-lg font-bold text-blue-400 tracking-widest uppercase"
+              >
+                Workspace
+              </h2>
+            </div>
+          </div>
+          <nav class="space-y-4 flex-1 text-sm">
+            <a
+              href="/"
+              class="flex items-center p-4 glass rounded-2xl hover:border-pink-500/50 transition bg-pink-500/5 font-bold text-pink-400"
+            >
+              <span class="w-2 h-2 bg-pink-500 rounded-full mr-3"></span> Home
+            </a>
+            <a
+              href="/halloffame"
+              class="flex items-center p-4 glass rounded-2xl hover:border-blue-500/50 transition bg-blue-500/5 font-bold text-blue-400"
+            >
+              <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span> Hall
+              of Fame
+            </a>
+            <a
+              href="/schedule"
+              class="flex items-center p-4 glass rounded-2xl hover:border-amber-500/50 transition bg-amber-500/5 font-bold text-amber-400"
+            >
+              <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
+              Schedule
+            </a>
+            <a
+              href="/timetable"
+              class="flex items-center p-4 glass rounded-2xl hover:border-green-500/50 transition bg-green-500/5 font-bold text-green-400"
+            >
+              <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span> Time
+              Table
+            </a>
+            <a
+              href="/student"
+              class="flex items-center p-4 glass rounded-2xl hover:border-purple-500/50 transition bg-purple-500/5 font-bold text-purple-400"
+            >
+              <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+              Student
+            </a>
+          </nav>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 p-4 md:p-8 overflow-x-hidden">
+      <header
+        class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-8 gap-6"
+      >
+        <div class="flex items-center gap-4">
+          <button
+            onclick="toggleSidebar()"
+            class="w-10 h-10 glass rounded-xl flex flex-col items-center justify-center gap-1"
+          >
+            <div class="w-5 h-0.5 bg-blue-500"></div>
+            <div class="w-5 h-0.5 bg-blue-500"></div>
+            <div class="w-5 h-0.5 bg-blue-500"></div>
+          </button>
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">
+              MWIT Schedule System
+            </h1>
+            <p id="current-title" class="text-gray-500 text-sm mt-1">
+              masteraun's Schedule System
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <div class="flex glass p-1 rounded-xl">
+            <button
+              onclick="setFilter('grade', '4')"
+              class="filter-btn grade-btn active"
+            >
+              ม.4
+            </button>
+            <button
+              onclick="setFilter('grade', '5')"
+              class="filter-btn grade-btn"
+            >
+              ม.5
+            </button>
+            <button
+              onclick="setFilter('grade', '6')"
+              class="filter-btn grade-btn"
+            >
+              ม.6
+            </button>
+          </div>
+          <div class="flex glass p-1 rounded-xl">
+            <button
+              onclick="setFilter('term', '1')"
+              class="filter-btn term-btn active"
+            >
+              เทอม 1
+            </button>
+            <button
+              onclick="setFilter('term', '2')"
+              class="filter-btn term-btn"
+            >
+              เทอม 2
+            </button>
+          </div>
+          <div class="flex glass p-1 rounded-xl">
+            <button
+              onclick="setFilter('type', 'A')"
+              class="filter-btn type-btn active"
+            >
+              แบบ A
+            </button>
+            <button
+              onclick="setFilter('type', 'B')"
+              class="filter-btn type-btn"
+            >
+              แบบ B
+            </button>
+          </div>
+          <button
+            onclick="toggleTheme()"
+            class="w-10 h-10 glass rounded-xl flex items-center justify-center hover:scale-110 transition"
+          >
+            <span id="theme-icon">🌙</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="rainbow-border shadow-2xl">
+        <div class="rainbow-inner overflow-hidden">
+          <div class="overflow-x-auto" id="table-container"></div>
+        </div>
+      </div>
+
+      <footer
+        class="mt-6 flex justify-between items-center text-[10px] text-gray-500 italic"
+      >
+        <span>* ข้อมูลอ้างอิงจาก MWIT 36.5 [cite: 3, 15]</span>
+        <span>อัปเดตล่าสุด: 17 พฤษภาคม 2026</span>
+      </footer>
+    </main>
+
+    <script>
+      let currentGrade = "4";
+      let currentTerm = "1";
+      let currentType = "A";
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("left-sidebar");
+        const overlay = document.getElementById("overlay");
+        sidebar.classList.toggle("open");
+        overlay.style.display = sidebar.classList.contains("open")
+          ? "block"
+          : "none";
+      }
+
+      function setFilter(type, val) {
+        const btn = event.currentTarget;
+        if (type === "grade") {
+          currentGrade = val;
+          document
+            .querySelectorAll(".grade-btn")
+            .forEach((b) => b.classList.remove("active"));
+        } else if (type === "term") {
+          currentTerm = val;
+          document
+            .querySelectorAll(".term-btn")
+            .forEach((b) => b.classList.remove("active"));
+        } else if (type === "type") {
+          currentType = val;
+          document
+            .querySelectorAll(".type-btn")
+            .forEach((b) => b.classList.remove("active"));
+        }
+        btn.classList.add("active");
+        updateDisplay();
+      }
+
+      function updateDisplay() {
+        document.getElementById("current-title").innerText =
+          `ม.${currentGrade}/5 | ภาคเรียนที่ ${currentTerm} | ตารางสอน ${currentType}`;
+        renderTable();
+      }
+
+      function renderTable() {
+        const container = document.getElementById("table-container");
+        let scheduleData = {};
+
+        // ข้อมูล ม.4 เทอม 1
+        if (currentGrade === "4" && currentTerm === "1") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["วิทยาการคอมพิวเตอร์เบื้องต้น", "อ.เลาขวัญ", "1201", "comp"],
+                [
+                  "พีชคณิตและแคลคูลัส",
+                  "อ.นคร/อ.วรพันธ์/อ.อมรศรี",
+                  "2302",
+                  "math",
+                ],
+                ["ภาษาไทยเพื่อการสื่อสาร 1", "อ.ปิยรัตน์", "1107", "thai"],
+                ["", "", "", "free"],
+                ["", "", "", "free"],
+              ],
+              tue: [
+                ["ภาษาอังกฤษ", "(แยกตามระดับ)", "", "english"],
+                ["พื้นฐานงานช่าง", "อ.วิทวัส/อ.พรมงคล", "โรงฝึกงาน", "other"],
+                ["ฟิสิกส์พื้นฐาน", "อ.เกล็ดทราย", "3701", "science"],
+                ["", "", "", "free"],
+                ["กิจกรรมพัฒนาผู้เรียน", "", "", "activity"],
+              ],
+              wed: [
+                [
+                  "พีชคณิตและแคลคูลัส",
+                  "อ.นคร/อ.วรพันธ์/อ.อมรศรี",
+                  "2302",
+                  "math",
+                ],
+                ["พื้นฐานสิ่งมีชีวิต", "อ.อทิตา", "3405", "science"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["สุนทรียนาฏศิลป์", "อ.ปภากร", "ห้องนาฏศิลป์", "other"],
+                ["", "", "", "free"],
+                ["ภาษาอังกฤษ", "(แยกตามระดับ)", "", "english"],
+                [
+                  "สุขศึกษาและพลศึกษา 1",
+                  "อ.อาริตา/อ.สุชาวดี",
+                  "ศูนย์กีฬาชั้น 3",
+                  "other",
+                ],
+                ["", "", "", "free"],
+              ],
+              fri: [
+                ["พื้นฐานของสิ่งมีชีวิต", "อ.อทิตา", "3401", "science"],
+                ["คณิตศาสตร์พื้นฐาน", "อ.สุพรรณี", "2303", "math"],
+                ["ศิลปศาสตร์ศึกษา 1", "อ.พชร", "1602", "other"],
+                ["เคมีพื้นฐาน", "อ.ศุภกร", "3603", "science"],
+                ["", "", "", "free"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["วิทยาการคอมพิวเตอร์เบื้องต้น", "อ.เลาขวัญ", "1201", "comp"],
+                [
+                  "พีชคณิตและแคลคูลัส",
+                  "อ.นคร/อ.วรพันธ์/อ.อมรศรี",
+                  "2302",
+                  "math",
+                ],
+                ["ภาษาไทยเพื่อการสื่อสาร 1", "อ.ปิยรัตน์", "1107", "thai"],
+                ["", "", "", "free"],
+                ["", "", "", "free"],
+              ],
+              tue: [
+                ["", "", "", "free"],
+                ["พื้นฐานงานช่าง", "อ.วิทวัส/อ.พรมงคล", "โรงฝึกงาน", "other"],
+                ["ฟิสิกส์พื้นฐาน", "อ.เกล็ดทราย", "3701", "science"],
+                ["", "", "", "free"],
+                ["กิจกรรมพัฒนาผู้เรียน", "", "", "activity"],
+              ],
+              wed: [
+                [
+                  "พีชคณิตและแคลคูลัส",
+                  "อ.นคร/อ.วรพันธ์/อ.อมรศรี",
+                  "2302",
+                  "math",
+                ],
+                ["", "", "", "free"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["คณิตศาสตร์พื้นฐาน", "อ.สุพรรณี", "2303", "math"],
+                ["เคมีพื้นฐาน", "อ.ศุภกร", "3603", "other"],
+                ["ภาษาอังกฤษ", "(แยกตามระดับ)", "", "english"],
+                ["ศาสนาเปรียบเทียบ", "อ.วิสิทธิ์", "1601", "other"],
+                ["", "", "", "free"],
+              ],
+              fri: [
+                ["พื้นฐานของสิ่งมีชีวิต", "อ.อทิตา", "3401", "science"],
+                ["คณิตศาสตร์พื้นฐาน", "อ.สุพรรณี", "2303", "math"],
+                ["ศิลปศาสตร์ศึกษา 1", "อ.พชร", "1602", "other"],
+                ["เคมีพื้นฐาน", "อ.ศุภกร", "3603", "science"],
+                ["", "", "", "free"],
+              ],
+            };
+          }
+        } else if (currentGrade === "4" && currentTerm === "2") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          }
+        } else if (currentGrade === "5" && currentTerm === "1") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          }
+        } else if (currentGrade === "5" && currentTerm === "2") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          }
+        } else if (currentGrade === "6" && currentTerm === "1") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          }
+        } else if (currentGrade === "6" && currentTerm === "2") {
+          if (currentType === "A") {
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          } else {
+            // ข้อมูล ตาราง B
+            scheduleData = {
+              mon: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              tue: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              wed: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+                ["รด.", "", "", "army"],
+              ],
+              thu: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+              fri: [
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+                ["-", "", "", "other"],
+              ],
+            };
+          }
+        } else {
+          const empty = [
+            ["-", "", "", "other"],
+            ["-", "", "", "other"],
+            ["-", "", "", "other"],
+            ["-", "", "", "other"],
+            ["-", "", "", "other"],
+          ];
+          scheduleData = {
+            mon: empty,
+            tue: empty,
+            wed: empty,
+            thu: empty,
+            fri: empty,
+          };
+        }
+
+        const days = [
+          { label: "จันทร์", data: scheduleData.mon },
+          { label: "อังคาร", data: scheduleData.tue },
+          { label: "พุธ", data: scheduleData.wed },
+          { label: "พฤหัสบดี", data: scheduleData.thu },
+          { label: "ศุกร์", data: scheduleData.fri },
+        ];
+
+        let rowsHtml = days
+          .map(
+            (day) => `
+                <tr>
+                <td class="day-column">${day.label}</td>
+                ${day.data
+                  .map((item, index) => {
+                    let spacer = "";
+                    if (index === 0)
+                      spacer = `<td class="spacer-column"><div class="vertical-text"><span>พั</span><span>ก</span></div></td>`;
+                    if (index === 1)
+                      spacer = `<td class="spacer-column"><div class="vertical-text"><span>พั</span><span>ก</span><span>ก</span><span>ล</span><span>า</span><span>ง</span><span>วั</span><span>น</span></div></td>`;
+                    if (index === 2 || index === 3)
+                      spacer = `<td class="spacer-column"><div class="vertical-text"><span>พั</span><span>ก</span></div></td>`;
+
+                    return `
+                          <td>
+                          <div class="class-card ${item[3]}">
+                          <span class="text-[14px] md:text-[16px] leading-tight">${item[0]}</span>
+                          <div class="mt-2 flex flex-col items-center">
+                          <span class="text-[13px] font-medium" style="color: var(--sub-info-color);">${item[1]}</span>
+                          <span class="text-[13px] font-bold mt-0.5" style="color: var(--room-info-color);">${item[2]}</span>
+                          </div>
+                          </div>
+                          </td>
+                          ${spacer}
+                `;
+                  })
+                  .join("")}
+                </tr>
+          `,
+          )
+          .join("");
+
+        container.innerHTML = `
+                <table>
+                <thead>
+                <tr>
+                          <th>คาบที่</th><th>1 - 2</th><th class="spacer-column"></th><th>3 - 4</th><th class="spacer-column"></th><th>5 - 6</th><th class="spacer-column"></th><th>7 - 8</th><th class="spacer-column"></th><th>9 - 10</th>
+                </tr>
+                <tr>
+                          <th> จ. - อ. </th>
+                          <th class="text-[14px] font-mono opacity-70">09.00-10.20</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">10.30-11.50</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">12:50-14.10</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">14.20-15:40</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">15:50-17:10</th>
+                </tr>
+                <tr>
+                          <th> พ. - ศ. </th>
+                          <th class="text-[14px] font-mono opacity-70">08.30-09.50</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">10.00-11.20</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">12:20-13.40</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">13.50-15:10</th><th class="spacer-column"></th>
+                          <th class="text-[14px] font-mono opacity-70">15:20-16:40</th>
+                </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+                </table>
+          `;
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle("light-mode");
+        const icon = document.getElementById("theme-icon");
+        icon.innerText = document.body.classList.contains("light-mode")
+          ? "☀️"
+          : "🌙";
+      }
+
+      updateDisplay();
+    </script>
+  </body>
+</html>

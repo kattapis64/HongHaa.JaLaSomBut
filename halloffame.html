@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aun's Workspace | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: #0b1120;
+        color: white;
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden; /* ป้องกันการเลื่อนแนวนอนตอน Sidebar ขยับ */
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      @keyframes rainbow-move {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .rainbow-border {
+        position: relative;
+        z-index: 0;
+        padding: 3px;
+        background: linear-gradient(
+          45deg,
+          #ff0000,
+          #ff7300,
+          #fffb00,
+          #48ff00,
+          #00ffd5,
+          #002bff,
+          #7a00ff,
+          #ff00c8,
+          #ff0000
+        );
+        background-size: 400%;
+        animation: rainbow-move 8s linear infinite;
+        border-radius: 2.5rem;
+        overflow: hidden;
+      }
+
+      .rainbow-inner {
+        background: #0b1120;
+        height: 100%;
+        width: 100%;
+        border-radius: calc(2.5rem - 3px);
+      }
+
+      /* Sidebar Slide Logic */
+      #left-sidebar {
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-110%);
+      }
+      #left-sidebar.open {
+        transform: translateX(0);
+      }
+
+      #overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 35; /* อยู่ระหว่าง Main content กับ Sidebar */
+        backdrop-filter: blur(4px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dashboard-page" class="h-screen w-screen relative flex flex-col">
+      <header class="p-8 flex items-center gap-6 z-20">
+        <button
+          onclick="toggleSidebar()"
+          class="w-12 h-12 glass rounded-xl flex flex-col items-center justify-center gap-1.5 hover:border-blue-500/50 transition z-50 shadow-lg active:scale-95"
+        >
+          <div class="w-6 h-0.5 bg-blue-400"></div>
+          <div class="w-6 h-0.5 bg-blue-400"></div>
+          <div class="w-6 h-0.5 bg-blue-400"></div>
+        </button>
+
+        <div>
+          <h1 class="text-4xl font-extrabold text-white leading-tight">
+            สวัสดีครับ, คุณ Aun
+          </h1>
+          <p class="text-gray-500 text-sm font-medium">
+            17 พฤษภาคม 2026 • ระบบจัดการ Workspace ส่วนตัว
+          </p>
+        </div>
+      </header>
+
+      <div id="overlay" onclick="toggleSidebar()"></div>
+
+      <aside id="left-sidebar" class="fixed top-0 left-0 h-full w-80 z-40 p-5">
+        <div class="rainbow-border h-full shadow-2xl">
+          <div class="rainbow-inner p-8 flex flex-col h-full">
+            <div
+              class="flex justify-between items-center mb-10 border-b border-white/5 pb-6"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs"
+                >
+                  A
+                </div>
+                <h2
+                  class="text-lg font-bold text-blue-400 tracking-widest uppercase"
+                >
+                  Workspace
+                </h2>
+              </div>
+              <button
+                onclick="toggleSidebar()"
+                class="text-gray-500 hover:text-white text-2xl transition"
+              >
+                &times;
+              </button>
+            </div>
+
+            <nav class="space-y-4 flex-1 text-sm">
+              <a
+                href="/"
+                class="flex items-center p-4 glass rounded-2xl hover:border-pink-500/50 transition bg-pink-500/5 font-bold text-pink-400"
+              >
+                <span class="w-2 h-2 bg-pink-500 rounded-full mr-3"></span> Home
+              </a>
+              <a
+                href="/halloffame"
+                class="flex items-center p-4 glass rounded-2xl hover:border-blue-500/50 transition bg-blue-500/5 font-bold text-blue-400"
+              >
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span> Hall
+                of Fame
+              </a>
+              <a
+                href="/schedule"
+                class="flex items-center p-4 glass rounded-2xl hover:border-amber-500/50 transition bg-amber-500/5 font-bold text-amber-400"
+              >
+                <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
+                Schedule
+              </a>
+              <a
+                href="/timetable"
+                class="flex items-center p-4 glass rounded-2xl hover:border-green-500/50 transition bg-green-500/5 font-bold text-green-400"
+              >
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                Time Table
+              </a>
+              <a
+                href="/student"
+                class="flex items-center p-4 glass rounded-2xl hover:border-purple-500/50 transition bg-purple-500/5 font-bold text-purple-400"
+              >
+                <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                Student
+              </a>
+            </nav>
+          </div>
+        </div>
+      </aside>
+
+      <main class="flex-1 p-10 overflow-y-auto">
+        <div class="max-w-8xl mx-auto flex flex-col lg:flex-row gap-10">
+          <div
+            class="w-full lg:w-64 shrink-0 grid grid-cols-2 lg:grid-cols-1 gap-4 h-fit"
+          >
+            <div
+              class="glass p-10 rounded-[2rem] border-yellow-500/20 flex flex-col items-center justify-center text-center group hover:bg-yellow-500/5 transition-all"
+            >
+              <span class="text-3xl mb-1">🥇</span>
+              <div id="count-gold" class="text-3xl font-black text-yellow-500">
+                0
+              </div>
+              <div
+                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1"
+              >
+                Gold Awards
+              </div>
+            </div>
+
+            <div
+              class="glass p-10 rounded-[2rem] border-slate-300/20 flex flex-col items-center justify-center text-center group hover:bg-slate-300/5 transition-all"
+            >
+              <span class="text-3xl mb-1">🥈</span>
+              <div id="count-silver" class="text-3xl font-black text-slate-300">
+                0
+              </div>
+              <div
+                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1"
+              >
+                Silver Awards
+              </div>
+            </div>
+
+            <div
+              class="glass p-10 rounded-[2rem] border-orange-400/20 flex flex-col items-center justify-center text-center group hover:bg-orange-400/5 transition-all"
+            >
+              <span class="text-3xl mb-1">🥉</span>
+              <div
+                id="count-bronze"
+                class="text-3xl font-black text-orange-400"
+              >
+                0
+              </div>
+              <div
+                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1"
+              >
+                Bronze Awards
+              </div>
+            </div>
+
+            <div
+              class="glass p-10 rounded-[2rem] border-blue-400/20 flex flex-col items-center justify-center text-center group hover:bg-blue-400/5 transition-all"
+            >
+              <span class="text-3xl mb-1">🎖️</span>
+              <div
+                id="count-honorable"
+                class="text-3xl font-black text-blue-400"
+              >
+                0
+              </div>
+              <div
+                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1"
+              >
+                Honorable
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div
+              class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4"
+            >
+              <div>
+                <h2 class="text-3xl font-bold text-white">Hall of Fame</h2>
+                <p class="text-gray-500">
+                  ตารางบันทึกเกียรติยศและรางวัลที่ได้รับทั้งหมด
+                </p>
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                <div class="relative group">
+                  <input
+                    type="text"
+                    id="table-search"
+                    onkeyup="filterTable()"
+                    placeholder="ค้นหาชื่อ, รางวัล, วันที่..."
+                    class="glass pl-12 pr-6 py-3 rounded-2xl outline-none focus:border-blue-500/50 transition-all w-full sm:w-72 text-sm"
+                  />
+                  <div
+                    class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <button
+                  onclick="openModal('add')"
+                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-500/20 whitespace-nowrap"
+                >
+                  + เพิ่มข้อมูลรางวัล
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="glass rounded-[2.5rem] overflow-hidden border-white/5 shadow-2xl"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr
+                      class="bg-white/5 text-gray-400 uppercase text-xs tracking-widest"
+                    >
+                      <th
+                        onclick="sortTable(0)"
+                        class="px-8 py-5 font-semibold cursor-pointer hover:text-white transition group"
+                      >
+                        รายการแข่งขัน / ผลงาน
+                        <span
+                          class="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                          >↕️</span
+                        >
+                      </th>
+                      <th
+                        onclick="sortTable(1)"
+                        class="px-6 py-5 font-semibold cursor-pointer hover:text-white transition group"
+                      >
+                        ระดับรางวัล
+                        <span
+                          class="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                          >↕️</span
+                        >
+                      </th>
+                      <th
+                        onclick="sortTable(2)"
+                        class="px-6 py-5 font-semibold cursor-pointer hover:text-white transition group text-blue-400"
+                      >
+                        วันที่
+                        <span
+                          class="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                          >↕️</span
+                        >
+                      </th>
+                      <th class="px-6 py-5 font-semibold">รายละเอียด</th>
+                      <th class="px-8 py-5 font-semibold text-right">จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="awards-table-body"
+                    class="divide-y divide-white/5 text-sm"
+                  >
+                    <tr class="hover:bg-white/[0.02] transition">
+                      <td class="px-8 py-6">
+                        <div class="font-bold text-white text-base">
+                          Startup Pitching National 2026
+                        </div>
+                        <div class="text-gray-500 text-xs">
+                          Innovation & Tech
+                        </div>
+                      </td>
+                      <td class="px-6 py-6">
+                        <span
+                          class="px-3 py-1 bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 rounded-full text-[10px] font-bold uppercase"
+                          >Gold Award</span
+                        >
+                      </td>
+                      <td class="px-6 py-6 text-gray-400">12 พ.ค. 2026</td>
+                      <td class="px-6 py-6 text-gray-500 max-w-xs truncate">
+                        นวัตกรรม AI สำหรับเกษตรกรยุคใหม่...
+                      </td>
+                      <td class="px-8 py-6 text-right">
+                        <div class="flex justify-end gap-3">
+                          <button
+                            onclick="
+                              openModal(
+                                'edit',
+                                'Startup Pitching National 2026',
+                              )
+                            "
+                            class="p-2 hover:bg-blue-500/20 rounded-lg text-blue-400 transition"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onclick="deleteRow(this)"
+                            class="p-2 hover:bg-red-500/20 rounded-lg text-red-400 transition"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      let sortDirection = true;
+
+      function sortTable(columnIndex) {
+        const tableBody = document.getElementById("awards-table-body");
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+        sortDirection = !sortDirection;
+
+        const tierOrder = {
+          "GOLD AWARD": 4,
+          "SILVER AWARD": 3,
+          "BRONZE AWARD": 2,
+          "HONORABLE MENTION": 1,
+        };
+
+        const sortedRows = rows.sort((a, b) => {
+          let cellA = a.children[columnIndex].innerText.trim().toUpperCase();
+          let cellB = b.children[columnIndex].innerText.trim().toUpperCase();
+
+          if (columnIndex === 1) {
+            let weightA = tierOrder[cellA] || 0;
+            let weightB = tierOrder[cellB] || 0;
+            return sortDirection ? weightA - weightB : weightB - weightA;
+          }
+
+          if (columnIndex === 2) {
+            cellA = parseThaiDateForSorting(cellA);
+            cellB = parseThaiDateForSorting(cellB);
+          }
+
+          if (cellA < cellB) return sortDirection ? -1 : 1;
+          if (cellA > cellB) return sortDirection ? 1 : -1;
+          return 0;
+        });
+
+        tableBody.innerHTML = "";
+        sortedRows.forEach((row) => tableBody.appendChild(row));
+      }
+
+      function parseThaiDateForSorting(dateStr) {
+        if (dateStr.includes("-") && dateStr.split("-").length === 3)
+          return dateStr;
+
+        const months = {
+          "ม.ค.": "01",
+          "ก.พ.": "02",
+          "มี.ค.": "03",
+          "เม.ย.": "04",
+          "พ.ค.": "05",
+          "มิ.ย.": "06",
+          "ก.ค.": "07",
+          "ส.ค.": "08",
+          "ก.ย.": "09",
+          "ต.ค.": "10",
+          "พ.ย.": "11",
+          "ธ.ค.": "12",
+        };
+
+        const parts = dateStr.split(" ");
+        if (parts.length === 3) {
+          const day = parts[0].padStart(2, "0");
+          const month = months[parts[1]] || "01";
+          const year = parts[2];
+          return `${year}-${month}-${day}`;
+        }
+        return dateStr;
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("left-sidebar");
+        const overlay = document.getElementById("overlay");
+        const isOpen = sidebar.classList.toggle("open");
+        overlay.style.display = isOpen ? "block" : "none";
+      }
+
+      function openModal(type, title = "") {
+        const modal = document.getElementById("crud-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+        const confirmBtn = document.getElementById("modal-confirm-btn");
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        confirmBtn.onclick = null;
+
+        if (type === "add" || type === "edit") {
+          modalTitle.innerText =
+            type === "add" ? "บันทึกรางวัลใหม่" : "แก้ไขรางวัล";
+          modalBody.innerHTML = `
+      <div class="space-y-4 text-left">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block ml-1">ชื่อรายการแข่งขัน</label>
+          <input type="text" id="new-name" value="${title}" placeholder="ชื่อรายการแข่งขัน" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 transition">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block ml-1">ระดับรางวัล</label>
+            <select id="new-tier" class="w-full bg-[#1a1f2e] border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500">
+              <option value="Gold Award">Gold Award</option>
+              <option value="Silver Award">Silver Award</option>
+              <option value="Bronze Award">Bronze Award</option>
+              <option value="Honorable Mention">Honorable Mention</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block ml-1">วันที่แข่ง</label>
+            <input type="date" id="new-date" class="w-full bg-[#1a1f2e] border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block ml-1">รายละเอียด</label>
+          <textarea id="new-desc" rows="2" placeholder="รายละเอียด..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500"></textarea>
+        </div>
+      </div>`;
+
+          confirmBtn.onclick = function () {
+            const name = document.getElementById("new-name").value;
+            const tier = document.getElementById("new-tier").value;
+            const date = document.getElementById("new-date").value;
+            const desc = document.getElementById("new-desc").value || "-";
+
+            if (!name) return alert("กรุณากรอกชื่อรายการ");
+
+            renderRow(name, tier, date, desc);
+            saveToLocal();
+            closeModal();
+          };
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("crud-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+
+      function saveToLocal() {
+        const tableBody = document.getElementById("awards-table-body");
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+        const data = rows.map((row) => {
+          return {
+            name: row.cells[0].querySelector(".font-bold").innerText,
+            subName: row.cells[0].querySelector(".text-gray-500").innerText,
+            tier: row.cells[1].innerText.trim(),
+            date: row.cells[2].innerText,
+            desc: row.cells[3].innerText,
+          };
+        });
+
+        localStorage.setItem("hallOfFameData", JSON.stringify(data));
+      }
+
+      function loadFromLocal() {
+        const savedData = localStorage.getItem("hallOfFameData");
+        if (!savedData) return;
+
+        const data = JSON.parse(savedData);
+        const tableBody = document.getElementById("awards-table-body");
+        tableBody.innerHTML = "";
+
+        data.forEach((item) => {
+          renderRow(item.name, item.tier, item.date, item.desc, item.subName);
+        });
+      }
+
+      function renderRow(name, tier, date, desc, subName = "New Entry") {
+        let badgeClass = "";
+        const t = tier.toUpperCase();
+        if (t.includes("GOLD"))
+          badgeClass = "bg-yellow-500/20 text-yellow-500 border-yellow-500/30";
+        else if (t.includes("SILVER"))
+          badgeClass = "bg-slate-300/20 text-slate-300 border-slate-300/30";
+        else if (t.includes("BRONZE"))
+          badgeClass = "bg-orange-500/20 text-orange-400 border-orange-500/30";
+        else badgeClass = "bg-blue-500/20 text-blue-400 border-blue-500/30";
+
+        const tableBody = document.getElementById("awards-table-body");
+        const newRow = document.createElement("tr");
+        newRow.className =
+          "hover:bg-white/[0.02] transition border-b border-white/5";
+        newRow.innerHTML = `
+        <td class="px-8 py-6">
+          <div class="font-bold text-white text-base">${name}</div>
+          <div class="text-gray-500 text-xs">${subName}</div>
+        </td>
+        <td class="px-6 py-6">
+          <span class="px-3 py-1 ${badgeClass} border rounded-full text-[10px] font-bold uppercase">${tier}</span>
+        </td>
+        <td class="px-6 py-6 text-gray-400">${date || "-"}</td>
+        <td class="px-6 py-6 text-gray-500 max-w-xs truncate">${desc}</td>
+        <td class="px-8 py-6 text-right">
+          <div class="flex justify-end gap-3">
+            <button onclick="openModal('edit', '${name}')" class="p-2 hover:bg-blue-500/20 rounded-lg text-blue-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            </button>
+            <button onclick="deleteRow(this)" class="p-2 hover:bg-red-500/20 rounded-lg text-red-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </td>`;
+        tableBody.appendChild(newRow);
+      }
+
+      function deleteRow(btn) {
+        btn.closest("tr").remove();
+        saveToLocal();
+      }
+
+      function filterTable() {
+        const input = document.getElementById("table-search");
+        const filter = input.value.toUpperCase();
+        const tableBody = document.getElementById("awards-table-body");
+        const rows = tableBody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          const rowText = rows[i].textContent || rows[i].innerText;
+          if (rowText.toUpperCase().indexOf(filter) > -1) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
+        }
+      }
+
+      function updateSummary() {
+        const tableBody = document.getElementById("awards-table-body");
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+        let gold = 0,
+          silver = 0,
+          bronze = 0,
+          honorable = 0;
+
+        rows.forEach((row) => {
+          const tier = row.cells[1].innerText.toUpperCase();
+          if (tier.includes("GOLD")) gold++;
+          else if (tier.includes("SILVER")) silver++;
+          else if (tier.includes("BRONZE")) bronze++;
+          else if (tier.includes("HONORABLE")) honorable++;
+        });
+
+        document.getElementById("count-gold").innerText = gold;
+        document.getElementById("count-silver").innerText = silver;
+        document.getElementById("count-bronze").innerText = bronze;
+        document.getElementById("count-honorable").innerText = honorable;
+      }
+
+      const originalSaveToLocal = saveToLocal;
+      saveToLocal = function () {
+        originalSaveToLocal();
+        updateSummary();
+      };
+
+      const originalLoadFromLocal = loadFromLocal;
+      loadFromLocal = function () {
+        originalLoadFromLocal();
+        updateSummary();
+      };
+
+      window.onload = function () {
+        loadFromLocal();
+        updateSummary();
+      };
+    </script>
+
+    <div
+      id="crud-modal"
+      class="fixed inset-0 z-[60] hidden items-center justify-center p-4"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onclick="closeModal()"
+      ></div>
+      <div
+        class="glass w-full max-w-md p-8 rounded-[2.5rem] relative z-10 border-white/10 shadow-2xl"
+      >
+        <h3 id="modal-title" class="text-2xl font-bold mb-6">Action</h3>
+        <div id="modal-body" class="space-y-4"></div>
+        <div class="mt-8 flex justify-end gap-3">
+          <button
+            onclick="closeModal()"
+            class="px-6 py-2 text-gray-400 hover:text-white transition"
+          >
+            Cancel
+          </button>
+          <button
+            id="modal-confirm-btn"
+            class="px-6 py-2 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

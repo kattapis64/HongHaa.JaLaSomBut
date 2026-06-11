@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aun's Workspace | Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* --- 1. Preview & Scroll System --- */
+      .preview-container {
+        max-height: 75px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .preview-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .task-preview {
+        font-size: 9px;
+        padding: 1px 4px;
+        margin-top: 2px;
+        border-radius: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: bold;
+        border-left: 3px solid rgba(255, 255, 255, 0.3);
+      }
+
+      /* --- 2. Dynamic Theme Variables --- */
+      :root {
+        --bg-color: #0b1120;
+        --text-main: #ffffff;
+        --text-sub: #9ca3af;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --sidebar-inner: #0b1120;
+        --sticky-time-bg: rgba(11, 17, 32, 0.8);
+        --calendar-hover: rgba(59, 130, 246, 0.1);
+        --resizer-bg: rgba(255, 255, 255, 0.1);
+      }
+
+      body.light-mode {
+        --bg-color: #f8fafc;
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(15, 23, 42, 0.1);
+        --sidebar-inner: #ffffff;
+        --sticky-time-bg: rgba(248, 250, 252, 0.9);
+        --calendar-hover: rgba(59, 130, 246, 0.05);
+        --resizer-bg: rgba(15, 23, 42, 0.05);
+      }
+
+      body {
+        background: var(--bg-color);
+        color: var(--text-main);
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden;
+        transition:
+          background 0.3s ease,
+          color 0.3s ease;
+      }
+
+      .glass {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      /* --- 3. Rainbow Border System --- */
+      @keyframes rainbow-move {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .rainbow-border {
+        position: relative;
+        z-index: 0;
+        padding: 3px;
+        background: linear-gradient(
+          45deg,
+          #ff0000,
+          #ff7300,
+          #fffb00,
+          #48ff00,
+          #00ffd5,
+          #002bff,
+          #7a00ff,
+          #ff00c8,
+          #ff0000
+        );
+        background-size: 400%;
+        animation: rainbow-move 8s linear infinite;
+        border-radius: 1.5rem;
+      }
+      .rainbow-inner {
+        background: var(--sidebar-inner);
+        height: 100%;
+        width: 100%;
+        border-radius: calc(1.5rem - 3px);
+        transition: background 0.3s ease;
+      }
+
+      /* --- 4. Sidebar & Layout --- */
+      #left-sidebar {
+        width: 18rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 40;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-110%);
+      }
+      #left-sidebar.open {
+        transform: translateX(0);
+      }
+      #overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 35;
+        backdrop-filter: blur(4px);
+        display: none;
+      }
+
+      #timeline-container > div.hour-row {
+        height: 64px;
+        position: relative;
+        border-top: 1px solid var(--glass-border);
+      }
+      .time-label {
+        background: var(--sticky-time-bg);
+        color: var(--text-sub);
+        backdrop-filter: blur(4px);
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(155, 155, 155, 0.3);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Overlay สำหรับปิด Sidebar -->
+    <div id="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar โครงสร้างเดียวกับ File 1 -->
+    <aside id="left-sidebar" class="p-5">
+      <div class="rainbow-border h-full shadow-2xl">
+        <div class="rainbow-inner p-8 flex flex-col h-full text-left">
+          <div
+            class="flex justify-between items-center mb-10 border-b border-white/5 pb-6"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs"
+              >
+                A
+              </div>
+              <h2
+                class="text-lg font-bold text-blue-400 tracking-widest uppercase"
+              >
+                Workspace
+              </h2>
+            </div>
+          </div>
+          <nav class="space-y-4 flex-1 text-sm">
+            <a
+              href="/"
+              class="flex items-center p-4 glass rounded-2xl hover:border-pink-500/50 transition bg-pink-500/5 font-bold text-pink-400"
+            >
+              <span class="w-2 h-2 bg-pink-500 rounded-full mr-3"></span> Home
+            </a>
+            <a
+              href="/halloffame"
+              class="flex items-center p-4 glass rounded-2xl hover:border-blue-500/50 transition bg-blue-500/5 font-bold text-blue-400"
+            >
+              <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span> Hall
+              of Fame
+            </a>
+            <a
+              href="/schedule"
+              class="flex items-center p-4 glass rounded-2xl hover:border-amber-500/50 transition bg-amber-500/5 font-bold text-amber-400"
+            >
+              <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
+              Schedule
+            </a>
+            <a
+              href="/timetable"
+              class="flex items-center p-4 glass rounded-2xl hover:border-green-500/50 transition bg-green-500/5 font-bold text-green-400"
+            >
+              <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span> Time
+              Table
+            </a>
+            <a
+              href="/student"
+              class="flex items-center p-4 glass rounded-2xl hover:border-purple-500/50 transition bg-purple-500/5 font-bold text-purple-400"
+            >
+              <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+              Student
+            </a>
+          </nav>
+        </div>
+      </div>
+    </aside>
+
+    <div
+      id="dashboard-page"
+      class="h-screen w-screen relative flex flex-col text-left"
+    >
+      <!-- Header ที่มีปุ่ม Hamburger -->
+      <header class="p-8 flex items-center justify-between z-20 w-full">
+        <div class="flex items-center gap-6">
+          <button
+            onclick="toggleSidebar()"
+            class="w-12 h-12 glass rounded-xl flex flex-col items-center justify-center gap-1.5 hover:border-blue-500/50 transition z-50 shadow-lg active:scale-90"
+          >
+            <div class="w-6 h-0.5 bg-blue-500"></div>
+            <div class="w-6 h-0.5 bg-blue-500"></div>
+            <div class="w-6 h-0.5 bg-blue-500"></div>
+          </button>
+          <div>
+            <h1 class="text-4xl font-extrabold tracking-tight">
+              สวัสดีครับ, คุณ Aun
+            </h1>
+            <p class="text-gray-500 text-sm font-medium">
+              17 เมษายน 2026 • แผนการวันนี้เป็นอย่างไร?
+            </p>
+          </div>
+        </div>
+        <button
+          onclick="toggleTheme()"
+          class="w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 active:scale-95 transition shadow-lg border-white/5"
+        >
+          <span id="theme-icon" class="text-xl">🌙</span>
+        </button>
+      </header>
+
+      <main class="flex-1 p-10 overflow-y-auto">
+        <header
+          class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12"
+        >
+          <div class="flex items-center gap-4">
+            <h1 class="text-4xl font-extrabold tracking-tight">
+              Timeline Planner
+            </h1>
+            <button
+              onclick="goToToday()"
+              class="glass px-6 py-2 rounded-xl text-sm font-bold hover:border-blue-500/50 transition"
+            >
+              Today
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-3 items-center">
+            <div
+              class="flex glass rounded-xl overflow-hidden border-blue-500/30 shadow-lg"
+            >
+              <button
+                onclick="changeMonth(-1)"
+                class="px-4 py-2 hover:bg-white/10 transition text-blue-400 font-bold"
+              >
+                ◀
+              </button>
+              <button
+                onclick="changeMonth(1)"
+                class="px-4 py-2 hover:bg-white/10 transition text-blue-400 border-l border-white/10"
+              >
+                ▶
+              </button>
+            </div>
+            <select
+              id="month-select"
+              onchange="updateCalendar()"
+              class="glass bg-transparent px-4 py-2 rounded-xl text-blue-400 font-bold outline-none cursor-pointer"
+            ></select>
+            <select
+              id="year-select"
+              onchange="updateCalendar()"
+              class="glass bg-transparent px-4 py-2 rounded-xl text-blue-400 font-bold outline-none cursor-pointer"
+            ></select>
+          </div>
+        </header>
+
+        <div class="rainbow-border shadow-2xl">
+          <div class="rainbow-inner p-6">
+            <div
+              class="grid grid-cols-7 gap-2 mb-4 text-center text-gray-500 font-bold text-xs uppercase tracking-widest"
+            >
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+            <div
+              id="calendar-days"
+              class="grid grid-cols-7 gap-2 text-center"
+            ></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Task Modal -->
+      <div
+        id="taskModal"
+        class="fixed inset-0 bg-black/40 backdrop-blur-xl z-[100] hidden items-center justify-center p-4"
+      >
+        <div
+          class="w-full max-w-4xl rainbow-border shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+        >
+          <div class="rainbow-inner p-8 flex flex-col h-[85vh]">
+            <div
+              class="flex justify-between items-center mb-6 border-b border-white/10 pb-4"
+            >
+              <div class="flex items-center gap-4 text-left">
+                <div
+                  class="flex glass rounded-lg overflow-hidden border-white/10"
+                >
+                  <button
+                    onclick="changeDay(-1)"
+                    class="px-3 py-1 hover:bg-white/5 transition text-blue-400 font-bold"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    onclick="changeDay(1)"
+                    class="px-3 py-1 hover:bg-white/5 transition text-blue-400 border-l border-white/10 font-bold"
+                  >
+                    ▶
+                  </button>
+                </div>
+                <h3
+                  id="modalDateTitle"
+                  class="text-2xl font-bold text-blue-400 tracking-tight"
+                >
+                  Date
+                </h3>
+              </div>
+              <div class="flex gap-2 items-center">
+                <button
+                  onclick="showAddSection()"
+                  class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-bold transition"
+                >
+                  + Add Task
+                </button>
+                <button
+                  onclick="closeTaskModal()"
+                  class="text-gray-400 text-3xl leading-none"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="flex flex-1 overflow-hidden relative"
+              id="modal-content-container"
+            >
+              <div
+                id="timeline-side"
+                class="overflow-y-auto custom-scrollbar pr-4 border-r border-white/5"
+                style="width: 33.33%"
+              >
+                <div
+                  class="space-y-0 relative text-left"
+                  id="timeline-container"
+                ></div>
+              </div>
+              <div
+                id="resizer"
+                class="w-1.5 cursor-col-resize z-50 flex items-center justify-center group opacity-50 hover:opacity-100"
+              >
+                <div class="w-[1px] h-8 bg-blue-500"></div>
+              </div>
+              <div
+                id="task-side"
+                class="flex-1 overflow-y-auto custom-scrollbar pl-4 text-left"
+              >
+                <div
+                  id="add-section"
+                  class="hidden glass p-6 rounded-2xl mb-6 border-blue-500/30"
+                >
+                  <h4 id="form-title" class="text-lg font-bold mb-4">
+                    จัดการกิจกรรม
+                  </h4>
+                  <div class="space-y-4">
+                    <input type="hidden" id="edit-index" />
+                    <input
+                      type="text"
+                      id="taskName"
+                      placeholder="ชื่อกิจกรรม"
+                      class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                    />
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                      <input
+                        type="checkbox"
+                        id="isAllDay"
+                        onchange="toggleTimeFields()"
+                      />
+                      <span>กิจกรรมทั้งวัน</span>
+                    </div>
+                    <div id="time-inputs" class="grid grid-cols-2 gap-4">
+                      <input
+                        type="time"
+                        id="startTime"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white outline-none"
+                      />
+                      <input
+                        type="time"
+                        id="endTime"
+                        class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white outline-none"
+                      />
+                    </div>
+                    <input
+                      type="color"
+                      id="taskColor"
+                      value="#3b82f6"
+                      class="w-12 h-10 bg-transparent border-none cursor-pointer"
+                    />
+                    <textarea
+                      id="taskNote"
+                      placeholder="บันทึกเพิ่มเติม"
+                      class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white h-24 outline-none"
+                    ></textarea>
+                    <div class="flex gap-2">
+                      <button
+                        onclick="saveTask()"
+                        class="flex-1 bg-green-600 py-2 rounded-xl font-bold"
+                      >
+                        บันทึก
+                      </button>
+                      <button
+                        onclick="hideAddSection()"
+                        class="flex-1 bg-white/5 py-2 rounded-xl font-bold"
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div id="taskDisplayList" class="space-y-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentData = new Date();
+      let selectedDateKey = "";
+      let allTasks = JSON.parse(localStorage.getItem("aun_tasks_v2")) || {};
+
+      const monthSelect = document.getElementById("month-select");
+      const yearSelect = document.getElementById("year-select");
+
+      // ปรับปรุง function toggleSidebar
+      function toggleSidebar() {
+        const sidebar = document.getElementById("left-sidebar");
+        const overlay = document.getElementById("overlay");
+        sidebar.classList.toggle("open");
+        overlay.style.display = sidebar.classList.contains("open")
+          ? "block"
+          : "none";
+      }
+
+      function getTaskColor(task) {
+        if (task.color && task.color !== "#000000")
+          return { bg: task.color + "40", border: task.color };
+        return { bg: "#3b82f640", border: "#3b82f6" };
+      }
+
+      function generateTimeline() {
+        const container = document.getElementById("timeline-container");
+        let html = `<div id="all-day-area" class="mb-4 hidden text-left border-b border-white/10 pb-4">
+                      <span class="text-[10px] font-bold text-blue-400 uppercase mb-2 block">All Day Events</span>
+                      <div id="all-day-list" class="space-y-1"></div>
+                    </div>`;
+        for (let i = 0; i < 24; i++) {
+          const hour = String(i).padStart(2, "0") + ":00";
+          html += `<div class="hour-row flex items-start pt-1 gap-3 relative">
+            <span class="text-[13px] font-mono w-12 sticky left-0 z-20 pr-1 time-label">${hour}</span>
+            <div class="flex-1 h-full relative z-10" id="hour-slot-${i}"></div>
+          </div>`;
+        }
+        container.innerHTML = html;
+      }
+
+      function renderTasks() {
+        const tasks = allTasks[selectedDateKey] || [];
+        document.getElementById("taskDisplayList").innerHTML = tasks.length
+          ? ""
+          : '<p class="text-center text-gray-500 mt-10 italic">ไม่มีกิจกรรม</p>';
+
+        const adArea = document.getElementById("all-day-area"),
+          adList = document.getElementById("all-day-list");
+        if (adArea) adArea.classList.add("hidden");
+        if (adList) adList.innerHTML = "";
+
+        Array.from({ length: 24 }, (_, i) => {
+          const slot = document.getElementById(`hour-slot-${i}`);
+          if (slot) slot.innerHTML = "";
+        });
+
+        tasks.forEach((t, i) => {
+          const colors = getTaskColor(t);
+          document.getElementById("taskDisplayList").innerHTML +=
+            `<div class="glass p-4 rounded-2xl border-l-4 group relative mb-3 shadow-lg" style="border-color:${colors.border}"><h5 class="text-lg font-bold">${t.name}</h5><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition"><button onclick="showAddSection(${i})" class="text-xs text-blue-400 hover:underline">Edit</button><button onclick="deleteTask(${i})" class="text-red-400 text-xs hover:underline">Del</button></div></div>`;
+
+          if (t.allDay && adArea && adList) {
+            adArea.classList.remove("hidden");
+            const bar = document.createElement("div");
+            bar.className =
+              "w-full border-l-4 rounded-xl p-2 text-[11px] font-bold truncate cursor-pointer hover:brightness-125 mb-1";
+            bar.style.backgroundColor = colors.border;
+            bar.style.color = "#ffffff";
+            bar.innerHTML = t.name;
+            bar.onclick = () => showAddSection(i);
+            adList.appendChild(bar);
+          }
+        });
+
+        const timedTasks = tasks
+          .map((t, idx) => ({ ...t, originalIndex: idx }))
+          .filter((t) => !t.allDay)
+          .sort((a, b) => a.start.localeCompare(b.start));
+        const columns = [];
+        const tasksWithColumn = timedTasks.map((task) => {
+          let colIndex = 0;
+          while (columns[colIndex] > task.start) colIndex++;
+          columns[colIndex] = task.end;
+          return { ...task, colIndex };
+        });
+
+        tasksWithColumn.forEach((t) => {
+          const colors = getTaskColor(t);
+          const [sh, sm] = t.start.split(":").map(Number),
+            [eh, em] = t.end.split(":").map(Number);
+          const dur = eh * 60 + em - (sh * 60 + sm),
+            slot = document.getElementById(`hour-slot-${sh}`);
+          if (slot && dur > 0) {
+            const bar = document.createElement("div");
+            const width = 100 / (columns.length || 1);
+            bar.className =
+              "absolute rounded-lg border-l-4 p-1 overflow-hidden z-10 cursor-pointer text-[12px] font-bold shadow-xl flex justify-center items-start text-center";
+            bar.style.cssText = `background-color:${colors.border}; border-color:${colors.border}; color:#fff; top:${(sm / 60) * 64}px; height:${(dur / 60) * 64}px; width:calc(${width}% - 4px); left:${t.colIndex * width}%;`;
+            const sC = "rgba(0,0,0,0.85)";
+            const thickShadow = `-1px -1px 1px ${sC}, 1px -1px 1px ${sC}, -1px 1px 1px ${sC}, 1px 1px 1px ${sC}, 0px -1px 1px ${sC}, 0px 1px 1px ${sC}, -1px 0px 1px ${sC}, 1px 0px 1px ${sC}`;
+            bar.innerHTML = `<span class="truncate px-1" style="text-shadow:${thickShadow}">${t.name}</span>`;
+            bar.onclick = () => showAddSection(t.originalIndex);
+            slot.appendChild(bar);
+          }
+        });
+      }
+
+      function renderCalendar() {
+        const m = currentData.getMonth(),
+          y = currentData.getFullYear();
+        monthSelect.value = m;
+        yearSelect.value = y;
+        const last = new Date(y, m + 1, 0).getDate(),
+          first = new Date(y, m, 1).getDay(),
+          prevLast = new Date(y, m, 0).getDate();
+        const today = new Date();
+
+        let days = Array.from(
+          { length: first },
+          (_, i) =>
+            `<div class="p-4 text-gray-400 text-sm opacity-20">${prevLast - first + i + 1}</div>`,
+        ).join("");
+
+        for (let i = 1; i <= last; i++) {
+          const key = `${y}-${String(m + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`,
+            ts = allTasks[key] || [],
+            isT =
+              i === today.getDate() &&
+              m === today.getMonth() &&
+              y === today.getFullYear();
+          let pre = "";
+          ts.forEach(
+            (t) =>
+              (pre += `<div class="task-preview" style="background:${t.color}30; color:${t.color}">${t.name}</div>`),
+          );
+          days += `<div onclick="openTaskModal('${key}')" class="relative p-2 min-h-[110px] glass rounded-2xl cursor-pointer hover:border-blue-500 transition flex flex-col text-left ${isT ? "border-blue-500 bg-blue-500/5" : ""}"><span class="text-xs mb-1 ${isT ? "text-blue-400 font-bold text-lg" : ""}">${i}</span><div class="flex-1 preview-container">${pre}</div></div>`;
+        }
+        document.getElementById("calendar-days").innerHTML = days;
+      }
+
+      function changeMonth(s) {
+        currentData.setMonth(currentData.getMonth() + s);
+        renderCalendar();
+      }
+      function updateCalendar() {
+        currentData.setMonth(monthSelect.value);
+        currentData.setFullYear(yearSelect.value);
+        renderCalendar();
+      }
+      function openTaskModal(k) {
+        selectedDateKey = k;
+        document.getElementById("modalDateTitle").innerText = k;
+        document.getElementById("taskModal").style.display = "flex";
+        generateTimeline();
+        renderTasks();
+        hideAddSection();
+      }
+      function closeTaskModal() {
+        document.getElementById("taskModal").style.display = "none";
+      }
+
+      function showAddSection(idx = -1) {
+        document.getElementById("add-section").classList.remove("hidden");
+        document.getElementById("edit-index").value = idx;
+        if (idx !== -1) {
+          const t = allTasks[selectedDateKey][idx];
+          document.getElementById("taskName").value = t.name;
+          document.getElementById("startTime").value = t.start;
+          document.getElementById("endTime").value = t.end;
+          document.getElementById("isAllDay").checked = t.allDay;
+          document.getElementById("taskNote").value = t.note || "";
+          document.getElementById("taskColor").value = t.color || "#3b82f6";
+        } else {
+          document.getElementById("taskName").value = "";
+          document.getElementById("isAllDay").checked = false;
+          document.getElementById("taskNote").value = "";
+          document.getElementById("taskColor").value = "#3b82f6";
+          document.getElementById("startTime").value = "09:00";
+          document.getElementById("endTime").value = "10:00";
+        }
+        toggleTimeFields();
+      }
+
+      function saveTask() {
+        const n = document.getElementById("taskName").value,
+          ad = document.getElementById("isAllDay").checked,
+          s = document.getElementById("startTime").value,
+          e = document.getElementById("endTime").value,
+          c = document.getElementById("taskColor").value,
+          idx = document.getElementById("edit-index").value;
+        if (!n) return alert("กรุณาระบุชื่อกิจกรรม");
+        const obj = {
+          name: n,
+          allDay: ad,
+          start: ad ? "00:00" : s,
+          end: ad ? "23:59" : e,
+          color: c,
+          note: document.getElementById("taskNote").value,
+        };
+        if (!allTasks[selectedDateKey]) allTasks[selectedDateKey] = [];
+        if (idx != -1) allTasks[selectedDateKey][idx] = obj;
+        else allTasks[selectedDateKey].push(obj);
+        allTasks[selectedDateKey].sort((a, b) =>
+          a.start.localeCompare(b.start),
+        );
+        localStorage.setItem("aun_tasks_v2", JSON.stringify(allTasks));
+        renderTasks();
+        renderCalendar();
+        hideAddSection();
+      }
+
+      function deleteTask(idx) {
+        if (confirm("ต้องการลบกิจกรรมนี้?")) {
+          allTasks[selectedDateKey].splice(idx, 1);
+          localStorage.setItem("aun_tasks_v2", JSON.stringify(allTasks));
+          renderTasks();
+          renderCalendar();
+        }
+      }
+      function hideAddSection() {
+        document.getElementById("add-section").classList.add("hidden");
+      }
+      function toggleTimeFields() {
+        const ad = document.getElementById("isAllDay").checked;
+        const timeInputs = document.getElementById("time-inputs");
+        timeInputs.style.opacity = ad ? "0.3" : "1";
+        timeInputs.style.pointerEvents = ad ? "none" : "auto";
+      }
+      function changeDay(s) {
+        const p = selectedDateKey.split("-").map(Number);
+        let d = new Date(p[0], p[1] - 1, p[2]);
+        d.setDate(d.getDate() + s);
+        const nk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        if (d.getMonth() !== p[1] - 1) {
+          currentData = new Date(d);
+          renderCalendar();
+        }
+        openTaskModal(nk);
+      }
+      function goToToday() {
+        currentData = new Date();
+        renderCalendar();
+      }
+
+      function initSelectors() {
+        const ms = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        monthSelect.innerHTML = ms
+          .map((m, i) => `<option value="${i}">${m}</option>`)
+          .join("");
+        const curY = new Date().getFullYear();
+        yearSelect.innerHTML = Array.from(
+          { length: 11 },
+          (_, i) => `<option value="${curY - 5 + i}">${curY - 5 + i}</option>`,
+        ).join("");
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle("light-mode");
+        const icon = document.getElementById("theme-icon");
+        const isLight = document.body.classList.contains("light-mode");
+        icon.innerText = isLight ? "☀️" : "🌙";
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        renderCalendar();
+        if (document.getElementById("taskModal").style.display === "flex") {
+          renderTasks();
+          generateTimeline();
+        }
+      }
+
+      const resizer = document.getElementById("resizer"),
+        leftSide = document.getElementById("timeline-side"),
+        modalContainer = document.getElementById("modal-content-container");
+      let isResizing = false;
+      resizer.addEventListener("mousedown", () => {
+        isResizing = true;
+        document.body.style.userSelect = "none";
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+        const rect = modalContainer.getBoundingClientRect();
+        let width = ((e.clientX - rect.left) / rect.width) * 100;
+        if (width > 15 && width < 70) leftSide.style.width = width + "%";
+      });
+      document.addEventListener("mouseup", () => {
+        isResizing = false;
+        document.body.style.userSelect = "auto";
+      });
+
+      initSelectors();
+      if (localStorage.getItem("theme") === "light") {
+        document.body.classList.add("light-mode");
+        document.getElementById("theme-icon").innerText = "☀️";
+      }
+      renderCalendar();
+    </script>
+  </body>
+</html>
