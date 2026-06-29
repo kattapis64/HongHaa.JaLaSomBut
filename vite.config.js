@@ -9,6 +9,7 @@ export default defineConfig({
         schedule: resolve(__dirname, 'schedule.html'),
         student: resolve(__dirname, 'student.html'),
         halloffame: resolve(__dirname, 'halloffame.html'),
+        timetable: resolve(__dirname, 'timetable.html'),
 
       }
     }

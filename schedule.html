@@ -162,64 +162,71 @@
     <div id="overlay" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar โครงสร้างเดียวกับ File 1 -->
-    <aside id="left-sidebar" class="p-5">
-      <div class="rainbow-border h-full shadow-2xl">
-        <div class="rainbow-inner p-8 flex flex-col h-full text-left">
-          <div
-            class="flex justify-between items-center mb-10 border-b border-white/5 pb-6"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs"
-              >
-                A
+     <aside id="left-sidebar" class="fixed top-0 left-0 h-full w-80 z-40 p-5">
+        <div class="rainbow-border h-full shadow-2xl">
+          <div class="rainbow-inner p-8 flex flex-col h-full">
+            <div
+              class="flex justify-between items-center mb-10 border-b border-white/5 pb-6"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xs"
+                >
+                  A
+                </div>
+                <h2
+                  class="text-lg font-bold text-blue-400 tracking-widest uppercase"
+                >
+                  Workspace
+                </h2>
               </div>
-              <h2
-                class="text-lg font-bold text-blue-400 tracking-widest uppercase"
+              <button
+                onclick="toggleSidebar()"
+                class="text-gray-500 hover:text-white text-2xl transition"
               >
-                Workspace
-              </h2>
+                &times;
+              </button>
             </div>
+
+            <nav class="space-y-4 flex-1 text-sm">
+              <a
+                href="/"
+                class="flex items-center p-4 glass rounded-2xl hover:border-pink-500/50 transition bg-pink-500/5 font-bold text-pink-400"
+              >
+                <span class="w-2 h-2 bg-pink-500 rounded-full mr-3"></span> Home
+              </a>
+              <a
+                href="/halloffame.html"
+                class="flex items-center p-4 glass rounded-2xl hover:border-blue-500/50 transition bg-blue-500/5 font-bold text-blue-400"
+              >
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span> Hall
+                of Fame
+              </a>
+              <a
+                href="/schedule.html"
+                class="flex items-center p-4 glass rounded-2xl hover:border-amber-500/50 transition bg-amber-500/5 font-bold text-amber-400"
+              >
+                <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
+                Schedule
+              </a>
+              <a
+                href="/timetable.html"
+                class="flex items-center p-4 glass rounded-2xl hover:border-green-500/50 transition bg-green-500/5 font-bold text-green-400"
+              >
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                Time Table
+              </a>
+              <a
+                href="/student.html"
+                class="flex items-center p-4 glass rounded-2xl hover:border-purple-500/50 transition bg-purple-500/5 font-bold text-purple-400"
+              >
+                <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                Student
+              </a>
+            </nav>
           </div>
-          <nav class="space-y-4 flex-1 text-sm">
-            <a
-              href="/"
-              class="flex items-center p-4 glass rounded-2xl hover:border-pink-500/50 transition bg-pink-500/5 font-bold text-pink-400"
-            >
-              <span class="w-2 h-2 bg-pink-500 rounded-full mr-3"></span> Home
-            </a>
-            <a
-              href="/halloffame"
-              class="flex items-center p-4 glass rounded-2xl hover:border-blue-500/50 transition bg-blue-500/5 font-bold text-blue-400"
-            >
-              <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span> Hall
-              of Fame
-            </a>
-            <a
-              href="/schedule"
-              class="flex items-center p-4 glass rounded-2xl hover:border-amber-500/50 transition bg-amber-500/5 font-bold text-amber-400"
-            >
-              <span class="w-2 h-2 bg-amber-500 rounded-full mr-3"></span>
-              Schedule
-            </a>
-            <a
-              href="/timetable"
-              class="flex items-center p-4 glass rounded-2xl hover:border-green-500/50 transition bg-green-500/5 font-bold text-green-400"
-            >
-              <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span> Time
-              Table
-            </a>
-            <a
-              href="/student"
-              class="flex items-center p-4 glass rounded-2xl hover:border-purple-500/50 transition bg-purple-500/5 font-bold text-purple-400"
-            >
-              <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-              Student
-            </a>
-          </nav>
         </div>
-      </div>
-    </aside>
+      </aside>
 
     <div
       id="dashboard-page"

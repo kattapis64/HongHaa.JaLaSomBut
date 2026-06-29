@@ -65,6 +65,11 @@
 	],
 	"file_history":
 	[
+		"/home/ksripairojn/gitclone/HongHaa.JaLaSomBut/main.js",
+		"/home/ksripairojn/gitclone/HongHaa.JaLaSomBut/vite.config.js",
+		"/home/ksripairojn/gitclone/HongHaa.JaLaSomBut/public/vite.svg",
+		"/home/ksripairojn/gitclone/HongHaa.JaLaSomBut/index.html",
+		"/home/ksripairojn/gitclone/HongHaa.JaLaSomBut/.gitignore",
 		"/home/ksripairojn/scripts/test.cpp",
 		"/home/ksripairojn/Documents/FIREBASE_smartPlug/src/main.cpp",
 		"/home/ksripairojn/Documents/FIREBASE_smartPlug/src/mainn.txt",
@@ -207,6 +212,7 @@
 	"selected_group": 0,
 	"settings":
 	{
+		"lsp_show_inlay_hints": false
 	},
 	"show_minimap": true,
 	"show_open_files": false,
